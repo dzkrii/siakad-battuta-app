@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Admin extends Authenticatable
 {
+    protected $guarded = [];
+
     protected $fillable = [
         'name',
         'username',
