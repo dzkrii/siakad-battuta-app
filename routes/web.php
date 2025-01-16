@@ -1,65 +1,65 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\LecturerController;
+use App\Http\Controllers\StudentController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AuthController as AdminAuthController;
-use App\Http\Controllers\Student\AuthController as StudentAuthController;
-use App\Http\Controllers\Lecturer\AuthController as LecturerAuthController;
-
-// Admin Routes
-Route::prefix('admin')->group(function () {
-    Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
-    Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
-    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
-
-    Route::middleware(['auth:admin'])->group(function () {
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard');
-        })->name('admin.dashboard');
-    });
-});
-
-// Student Routes
-Route::prefix('mahasiswa')->group(function () {
-    Route::get('/login', [StudentAuthController::class, 'showLoginForm'])->name('mahasiswa.login');
-    Route::post('/login', [StudentAuthController::class, 'login'])->name('mahasiswa.login.submit');
-    Route::post('/logout', [StudentAuthController::class, 'logout'])->name('mahasiswa.logout');
-
-    Route::middleware(['auth:student'])->group(function () {
-        Route::get('/dashboard', function () {
-            return view('mahasiswa.dashboard');
-        })->name('mahasiswa.dashboard');
-    });
-});
-
-// Lecturer Routes
-Route::prefix('dosen')->group(function () {
-    Route::get('/login', [LecturerAuthController::class, 'showLoginForm'])->name('dosen.login');
-    Route::post('/login', [LecturerAuthController::class, 'login'])->name('dosen.login.submit');
-    Route::post('/logout', [LecturerAuthController::class, 'logout'])->name('dosen.logout');
-
-    Route::middleware(['auth:lecturer'])->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dosen.dashboard');
-        })->name('dosen.dashboard');
-    });
-});
-
-Route::get('/dashboard', function () {
-    return view('admin.dashboard');
-});
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('pages.auth.mahasiswa.auth-login');
 });
 
-Route::get('/admin', function () {
-    return view('admin.auth.login');
-});
+Route::get('/admin/login', [AuthController::class, 'showAdminLoginForm'])->name('admin.login');
+Route::post('/admin/login', [AuthController::class, 'adminLogin']);
 
-Route::get('/dosen', function () {
-    return view('dosen.auth.login');
-});
+Route::get('/mahasiswa/login', [AuthController::class, 'showMahasiswaLoginForm'])->name('mahasiswa.login');
+Route::post('/mahasiswa/login', [AuthController::class, 'mahasiswaLogin']);
 
-Route::get('/mahasiswa', function () {
-    return view('mahasiswa.auth.login');
-});
+Route::get('/dosen/login', [AuthController::class, 'showDosenLoginForm'])->name('dosen.login');
+Route::post('/dosen/login', [AuthController::class, 'dosenLogin']);
+
+// Rute untuk admin
+Route::middleware('auth:admin')->get('/admin/dashboard', function () {
+    return view('pages.dashboard', ['type_menu' => 'admin']);
+})->name('admin.dashboard');
+
+// Rute untuk mahasiswa
+Route::middleware('auth:student')->get('/mahasiswa/dashboard', function () {
+    return view('pages.dashboard', ['type_menu' => 'mahasiswa']);
+})->name('mahasiswa.dashboard');
+
+// Rute untuk dosen
+Route::middleware('auth:lecturer')->get('/dosen/dashboard', function () {
+    return view('pages.dashboard', ['type_menu' => 'dosen']);
+})->name('dosen.dashboard');
+
+// Route logout
+Route::post('/logout', function () {
+    $guard = null;
+
+    // Menentukan guard yang aktif berdasarkan siapa yang login
+    if (Auth::guard('admin')->check()) {
+        $guard = 'admin';
+    } elseif (Auth::guard('student')->check()) {
+        $guard = 'student';
+    } elseif (Auth::guard('lecturer')->check()) {
+        $guard = 'lecturer';
+    }
+
+    // Logout pengguna yang sedang aktif
+    Auth::guard($guard)->logout();
+
+    // Redirect ke halaman login yang sesuai berdasarkan guard
+    if ($guard === 'admin') {
+        return redirect()->route('admin.login');
+    } elseif ($guard === 'student') {
+        return redirect()->route('mahasiswa.login');
+    } elseif ($guard === 'lecturer') {
+        return redirect()->route('dosen.login');
+    }
+
+    // Default, jika tidak ada guard yang cocok
+    return redirect('/');
+})->name('logout');

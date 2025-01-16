@@ -39,19 +39,23 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+            'name' => 'user_session',  // Nama sesi untuk user
         ],
 
         'admin' => [
             'driver' => 'session',
             'provider' => 'admins',
+            'name' => 'admin_session',  // Nama sesi untuk admin
         ],
         'student' => [
             'driver' => 'session',
             'provider' => 'students',
+            'name' => 'student_session',  // Nama sesi untuk mahasiswa
         ],
         'lecturer' => [
             'driver' => 'session',
             'provider' => 'lecturers',
+            'name' => 'lecturer_session',  // Nama sesi untuk dosen
         ],
     ],
 
