@@ -8,26 +8,58 @@ use Illuminate\View\View;
 
 class FacultyController extends Controller
 {
-    public function index(): View
+    // index
+    public function index()
     {
-        $faculties = Faculty::latest()->paginate(10);
-
-        return view('admin.fakultas.index', compact('faculties'));
+        // search by nama_fakultas, pagination 10
+        $faculties = Faculty::where('nama_fakultas', 'like', '%' . request('search') . '%')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+        return view('pages.fakultas.index', compact('faculties'));
     }
 
+    // create
+    public function create()
+    {
+        return view('pages.fakultas.create');
+    }
+
+    // store
     public function store(Request $request)
     {
-        // Validasi input
         $request->validate([
-            'nama_fakultas' => 'required|unique:faculties,nama_fakultas|max:100',
+            'nama_fakultas' => 'required',
         ]);
 
-        // Simpan data fakultas
         Faculty::create([
             'nama_fakultas' => $request->nama_fakultas,
         ]);
+        return redirect()->route('faculties.index')->with('success', 'Fakultas berhasil ditambahkan');
+    }
 
-        // Redirect kembali dengan pesan sukses
-        return redirect()->route('fakultas.index')->with('success', 'Fakultas berhasil ditambahkan.');
+    // edit
+    public function edit(Faculty $faculty)
+    {
+        return view('pages.fakultas.edit', compact('faculty'));
+    }
+
+    // update
+    public function update(Request $request, Faculty $faculty)
+    {
+        $request->validate([
+            'nama_fakultas' => 'required',
+        ]);
+
+        $faculty->update([
+            'nama_fakultas' => $request->nama_fakultas,
+        ]);
+        return redirect()->route('faculties.index')->with('success', 'Fakultas berhasil diperbarui');
+    }
+
+    // destroy
+    public function destroy(Faculty $faculty)
+    {
+        $faculty->delete();
+        return redirect()->route('faculties.index')->with('success', 'Fakultas berhasil dihapus');
     }
 }

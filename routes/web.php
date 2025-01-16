@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\LecturerController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Auth;
@@ -63,3 +64,6 @@ Route::post('/logout', function () {
     // Default, jika tidak ada guard yang cocok
     return redirect('/');
 })->name('logout');
+
+// Rute untuk Fakultas (hanya admin yang bisa akses)
+Route::middleware('auth:admin')->resource('faculties', FacultyController::class);
