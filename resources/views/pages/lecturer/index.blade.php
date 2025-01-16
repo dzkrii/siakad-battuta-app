@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Data Fakultas')
+@section('title', 'Data Master Dosen')
 
 @push('style')
     <!-- CSS Libraries -->
@@ -11,14 +11,14 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Fakultas</h1>
+                <h1>Dosen</h1>
                 <div class="section-header-button">
-                    <a href="{{ route('faculties.create') }}" class="btn btn-primary">Add New</a>
+                    <a href="{{ route('lecturers.create') }}" class="btn btn-primary">Add New</a>
                 </div>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item"><a href="#">Fakultas</a></div>
-                    <div class="breadcrumb-item">All Faculties</div>
+                    <div class="breadcrumb-item"><a href="#">Lecturer</a></div>
+                    <div class="breadcrumb-item">All Lecturers</div>
                 </div>
             </div>
             <div class="section-body">
@@ -27,9 +27,9 @@
                         @include('layouts.alert')
                     </div>
                 </div>
-                <h2 class="section-title">Fakultas</h2>
+                <h2 class="section-title">Dosen</h2>
                 <p class="section-lead">
-                    You can manage all Faculties, such as editing, deleting and more.
+                    You can manage all lecturers, such as editing, deleting and more.
                 </p>
 
 
@@ -37,12 +37,12 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4>All Faculties</h4>
+                                <h4>All Lecturers</h4>
                             </div>
                             <div class="card-body">
 
                                 <div class="float-right">
-                                    <form method="GET" action="{{ route('faculties.index') }}">
+                                    <form method="GET" action="{{ route('lecturers.index') }}">
                                         <div class="input-group">
                                             <input type="text" class="form-control" placeholder="Search" name="search">
                                             <div class="input-group-append">
@@ -58,24 +58,40 @@
                                     <table class="table-striped table">
                                         <tr>
 
-                                            <th>Nama Fakultas</th>
+                                            <th>#</th>
+                                            <th>NIDN</th>
+                                            <th>Nama</th>
+                                            <th>Telepon</th>
+                                            <th>Alamat</th>
                                             <th class="text-center">Action</th>
                                         </tr>
-                                        @foreach ($faculties as $faculty)
+                                        @foreach ($lecturers as $lecturer)
                                             <tr>
 
                                                 <td>
-                                                    {{ $faculty->nama_fakultas }}
+                                                    {{ $loop->iteration }}
+                                                </td>
+                                                <td>
+                                                    {{ $lecturer->nidn }}
+                                                </td>
+                                                <td>
+                                                    {{ $lecturer->name }}
+                                                </td>
+                                                <td>
+                                                    {{ $lecturer->telepon }}
+                                                </td>
+                                                <td>
+                                                    {{ $lecturer->alamat }}
                                                 </td>
                                                 <td>
                                                     <div class="d-flex justify-content-center">
-                                                        <a href='{{ route('faculties.edit', $faculty->id) }}'
+                                                        <a href='{{ route('lecturers.edit', $lecturer->id) }}'
                                                             class="btn btn-sm btn-info btn-icon">
                                                             <i class="fas fa-edit"></i>
                                                             Edit
                                                         </a>
 
-                                                        <form action="{{ route('faculties.destroy', $faculty->id) }}"
+                                                        <form action="{{ route('lecturers.destroy', $lecturer->id) }}"
                                                             method="POST" class="ml-2">
                                                             <input type="hidden" name="_method" value="DELETE" />
                                                             <input type="hidden" name="_token"
@@ -93,7 +109,7 @@
                                     </table>
                                 </div>
                                 <div class="float-right">
-                                    {{ $faculties->withQueryString()->links() }}
+                                    {{ $lecturers->withQueryString()->links() }}
                                 </div>
                             </div>
                         </div>

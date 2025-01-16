@@ -15,13 +15,18 @@ class FacultyController extends Controller
         $faculties = Faculty::where('nama_fakultas', 'like', '%' . request('search') . '%')
             ->orderBy('id', 'desc')
             ->paginate(10);
-        return view('pages.fakultas.index', compact('faculties'));
+        return view('pages.fakultas.index', [
+            'faculties' => $faculties,
+            'type_menu' => 'data-master',
+        ]);
     }
 
     // create
     public function create()
     {
-        return view('pages.fakultas.create');
+        return view('pages.fakultas.create', [
+            'type_menu' => 'data-master',
+        ]);
     }
 
     // store
@@ -40,7 +45,10 @@ class FacultyController extends Controller
     // edit
     public function edit(Faculty $faculty)
     {
-        return view('pages.fakultas.edit', compact('faculty'));
+        return view('pages.fakultas.edit', [
+            'faculty' => $faculty,
+            'type_menu' => 'data-master',
+        ]);
     }
 
     // update

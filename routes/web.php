@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\LecturerController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudyProgramController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -65,5 +66,9 @@ Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
 
-// Rute untuk Fakultas (hanya admin yang bisa akses)
+// Rute untuk Menu Admin (hanya admin yang bisa akses)
 Route::middleware('auth:admin')->resource('faculties', FacultyController::class);
+Route::middleware('auth:admin')->resource('study_programs', StudyProgramController::class);
+Route::middleware('auth:admin')->resource('admins', AdminController::class);
+Route::middleware('auth:admin')->resource('students', StudentController::class);
+Route::middleware('auth:admin')->resource('lecturers', LecturerController::class);

@@ -8,111 +8,78 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-    // Menampilkan semua admin
+    // index
     public function index()
     {
-        $admins = Admin::with('role')->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $admins,
+        // search by name / username, pagination 10
+        $admins = Admin::where('name', 'like', '%' . request('search') . '%')
+            ->orWhere('username', 'like', '%' . request('search') . '%')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+        return view('pages.admin.index', [
+            'admins' => $admins,
+            'type_menu' => 'data-master',
         ]);
     }
 
-    // Menyimpan admin baru
+    // create
+    public function create()
+    {
+        return view('pages.admin.create', [
+            'type_menu' => 'data-master',
+        ]);
+    }
+
+    // store
     public function store(Request $request)
     {
         $request->validate([
             'name'     => 'required|max:50',
             'username' => 'required|unique:admins,username|max:50',
-            'password' => 'required|min:6',
-            'role_id'  => 'required|exists:roles,id',
+            'password' => 'required|min:4',
         ]);
 
-        $admin = Admin::create([
+        Admin::create([
             'name'     => $request->name,
             'username' => $request->username,
             'password' => Hash::make($request->password),
-            'role_id'  => $request->role_id,
+            'role_id'  => 1,
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Admin berhasil ditambahkan',
-            'data' => $admin,
+        return redirect()->route('admins.index')->with('success', 'Admin berhasil ditambahkan');
+    }
+
+    // edit
+    public function edit(Admin $admin)
+    {
+        return view('pages.admin.edit', [
+            'admin'     => $admin,
+            'type_menu' => 'data-master',
         ]);
     }
 
-    // Menampilkan admin berdasarkan ID
-    public function show($id)
+    // update
+    public function update(Request $request, Admin $admin)
     {
-        $admin = Admin::with('role')->find($id);
-
-        if (!$admin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Admin tidak ditemukan',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $admin,
-        ]);
-    }
-
-    // Mengupdate data admin
-    public function update(Request $request, $id)
-    {
-        $admin = Admin::find($id);
-
-        if (!$admin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Admin tidak ditemukan',
-            ], 404);
-        }
-
         $request->validate([
             'name'     => 'required|max:50',
-            'username' => 'required|unique:admins,username,' . $id . '|max:50',
-            'password' => 'nullable|min:6',
-            'role_id'  => 'required|exists:roles,id',
+            'username' => 'required|unique:admins,username,' . $admin->id . '|max:50',
+            'password' => 'nullable|min:4',
         ]);
 
-        $admin->username = $request->username;
-        $admin->role_id = $request->role_id;
-
-        if ($request->password) {
-            $admin->password = Hash::make($request->password);
-        }
-
-        $admin->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Admin berhasil diupdate',
-            'data' => $admin,
+        $admin->update([
+            'name'     => $request->name,
+            'username' => $request->username,
+            'password' => $request->password ? Hash::make($request->password) : $admin->password,
         ]);
+
+        return redirect()->route('admins.index')->with('success', 'Admin berhasil diperbarui');
     }
 
-    // Menghapus admin
-    public function destroy($id)
+    // destroy
+    public function destroy(Admin $admin)
     {
-        $admin = Admin::find($id);
-
-        if (!$admin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Admin tidak ditemukan',
-            ], 404);
-        }
-
         $admin->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Admin berhasil dihapus',
-        ]);
+        return redirect()->route('admins.index')->with('success', 'Admin berhasil dihapus');
     }
 }

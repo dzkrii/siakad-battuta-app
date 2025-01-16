@@ -2,47 +2,85 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Faculty;
 use App\Models\StudyProgram;
 use Illuminate\Http\Request;
 
 class StudyProgramController extends Controller
 {
+    // index
     public function index()
     {
-        $studyPrograms = StudyProgram::with('faculty')->get();
-        return response()->json($studyPrograms);
+        // search by nama_prodi, pagination 10
+        $studyPrograms = StudyProgram::with('faculty')
+            ->where('nama_prodi', 'like', '%' . request('search') . '%')
+            ->orWhereHas('faculty', function ($query) {
+                $query->where('nama_fakultas', 'like', '%' . request('search') . '%');
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+        return view('pages.study_program.index', [
+            'studyPrograms' => $studyPrograms,
+            'type_menu' => 'data-master',
+        ]);
     }
 
+    // create
+    public function create()
+    {
+        $faculties = Faculty::all(); // Ambil semua data fakultas
+
+        return view('pages.study_program.create', [
+            'faculties' => $faculties,
+            'type_menu' => 'data-master',
+        ]);
+    }
+
+    // store
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama_prodi' => 'required|string|max:255',
-            'faculty_id' => 'required|exists:faculties,id',
+        $request->validate([
+            'nama_prodi' => 'required',
+            'faculty_id' => 'required',
         ]);
 
-        $studyProgram = StudyProgram::create($validated);
-        return response()->json($studyProgram, 201);
+        StudyProgram::create([
+            'nama_prodi' => $request->nama_prodi,
+            'faculty_id' => $request->faculty_id,
+        ]);
+        return redirect()->route('study_programs.index')->with('success', 'Program studi berhasil ditambahkan');
     }
 
-    public function show(StudyProgram $studyProgram)
+    // edit
+    public function edit(StudyProgram $studyProgram)
     {
-        return response()->json($studyProgram->load('faculty'));
+        $faculties = Faculty::all();
+        return view('pages.study_program.edit', [
+            'studyProgram' => $studyProgram,
+            'faculties' => $faculties,
+            'type_menu' => 'data-master',
+        ]);
     }
 
+    // update
     public function update(Request $request, StudyProgram $studyProgram)
     {
-        $validated = $request->validate([
-            'nama_prodi' => 'required|string|max:255',
-            'faculty_id' => 'required|exists:faculties,id',
+        $request->validate([
+            'nama_prodi' => 'required',
+            'faculty_id' => 'required',
         ]);
 
-        $studyProgram->update($validated);
-        return response()->json($studyProgram);
+        $studyProgram->update([
+            'nama_prodi' => $request->nama_prodi,
+            'faculty_id' => $request->faculty_id,
+        ]);
+        return redirect()->route('study_programs.index')->with('success', 'Program studi berhasil diperbarui');
     }
 
+    // destroy
     public function destroy(StudyProgram $studyProgram)
     {
         $studyProgram->delete();
-        return response()->json(null, 204);
+        return redirect()->route('study_programs.index')->with('success', 'Program studi berhasil dihapus');
     }
 }

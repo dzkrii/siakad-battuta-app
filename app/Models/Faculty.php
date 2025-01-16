@@ -12,4 +12,9 @@ class Faculty extends Model
     protected $fillable = [
         'nama_fakultas',
     ];
+
+    public function studyPrograms()
+    {
+        return $this->hasMany(StudyProgram::class, 'faculty_id');
+    }
 }

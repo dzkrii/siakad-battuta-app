@@ -9,22 +9,40 @@ use Illuminate\Support\Facades\Storage;
 
 class LecturerController extends Controller
 {
+    // index
     public function index()
     {
-        $lecturers = Lecturer::with('role')->get();
-        return response()->json($lecturers);
+        // search by nidn, name, telepon, alamat, pagination 10
+        $lecturers = Lecturer::where('nidn', 'like', '%' . request('search') . '%')
+            ->orWhere('name', 'like', '%' . request('search') . '%')
+            ->orWhere('telepon', 'like', '%' . request('search') . '%')
+            ->orWhere('alamat', 'like', '%' . request('search') . '%')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+        return view('pages.lecturer.index', [
+            'lecturers' => $lecturers,
+            'type_menu' => 'data-master',
+        ]);
     }
 
+    // create
+    public function create()
+    {
+        return view('pages.lecturer.create', [
+            'type_menu' => 'data-master',
+        ]);
+    }
+
+    // store
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nidn' => 'required|string|unique:dosens,nidn',
+            'nidn' => 'required|string|unique:lecturers,nidn',
             'name' => 'required|string|max:255',
-            'password' => 'required|min:6',
+            'password' => 'required|min:4',
             'foto' => 'nullable|image|max:2048',
             'telepon' => 'nullable|string',
             'alamat' => 'nullable|string',
-            'role_id' => 'required|exists:roles,id'
         ]);
 
         if ($request->hasFile('foto')) {
@@ -32,51 +50,66 @@ class LecturerController extends Controller
             $validated['foto'] = Storage::url($path);
         }
 
-        $validated['password'] = Hash::make($validated['password']);
+        Lecturer::create([
+            'nidn' => $request['nidn'],
+            'name' => $request['name'],
+            'password' => Hash::make($request['password']),
+            'foto' => $request['foto'],
+            'telepon' => $request['telepon'],
+            'alamat' => $request['alamat'],
+            'role_id' => 3,
+        ]);
 
-        $lecturer = Lecturer::create($validated);
-        return response()->json($lecturer, 201);
+        return redirect()->route('lecturers.index')->with('success', 'Dosen berhasil ditambahkan');
     }
 
-    public function show(Lecturer $lecturer)
+    // edit
+    public function edit(Lecturer $lecturer)
     {
-        return response()->json($lecturer->load('role'));
+        return view('pages.lecturer.edit', [
+            'lecturer' => $lecturer,
+            'type_menu' => 'data-master',
+        ]);
     }
 
+    // update
     public function update(Request $request, Lecturer $lecturer)
     {
         $validated = $request->validate([
-            'nidn' => 'sometimes|required|string|unique:dosens,nidn,' . $lecturer->id,
-            'name' => 'sometimes|required|string|max:255',
-            'password' => 'sometimes|required|min:6',
+            'nidn' => 'required|string|unique:lecturers,nidn,' . $lecturer->id,
+            'name' => 'required|string|max:255',
+            'password' => 'nullable|min:4',
             'foto' => 'nullable|image|max:2048',
             'telepon' => 'nullable|string',
             'alamat' => 'nullable|string',
-            'role_id' => 'sometimes|required|exists:roles,id'
         ]);
 
         if ($request->hasFile('foto')) {
-            if ($lecturer->foto) {
-                Storage::delete(str_replace('/storage', 'public', $lecturer->foto));
-            }
             $path = $request->file('foto')->store('public/lecturers');
             $validated['foto'] = Storage::url($path);
         }
 
-        if (isset($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+        $lecturer->update([
+            'nidn' => $request['nidn'],
+            'name' => $request['name'],
+            'foto' => $request['foto'],
+            'telepon' => $request['telepon'],
+            'alamat' => $request['alamat'],
+        ]);
+
+        if ($request->password) {
+            $lecturer->update([
+                'password' => Hash::make($validated['password']),
+            ]);
         }
 
-        $lecturer->update($validated);
-        return response()->json($lecturer);
+        return redirect()->route('lecturers.index')->with('success', 'Dosen berhasil diubah');
     }
 
+    // destroy
     public function destroy(Lecturer $lecturer)
     {
-        if ($lecturer->foto) {
-            Storage::delete(str_replace('/storage', 'public', $lecturer->foto));
-        }
         $lecturer->delete();
-        return response()->json(null, 204);
+        return redirect()->route('lecturers.index')->with('success', 'Dosen berhasil dihapus');
     }
 }
